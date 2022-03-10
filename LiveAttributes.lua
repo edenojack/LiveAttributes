@@ -35,6 +35,7 @@ function LiveAttributes.New(DefaultTable, DefaultObject)
                 local AttributeName = ObjectAttributeValue[2]; --Attribute name
                 local ThisValue     = ObjectAttributeValue[3]; --Intended value
                 if ThisValue then
+                    --print("Setting value", Key)
                     if SupportedTypes[typeof(ThisValue)] and type(AttributeName) == "string" then
                         Object:SetAttribute(AttributeName, ThisValue)
                     end
@@ -51,14 +52,15 @@ function LiveAttributes.New(DefaultTable, DefaultObject)
                 end
                 --Setupconnections
                 ConnectionTable[Object][AttributeName] = Object:GetAttributeChangedSignal(AttributeName):Connect(function()
-                    DefaultTable[Key] = Object:GetAttribute(AttributeName);
+                    DefaultTable[Key] = Object:GetAttribute(AttributeName) or DefaultTable[Key];
                 end)
                 --set initial connection
-                DefaultTable[Key] = Object:GetAttribute(AttributeName);
+                DefaultTable[Key] = Object:GetAttribute(AttributeName) or DefaultTable[Key];
             else
                 for ThisObject, Connections in pairs(ConnectionTable) do
                     local FindKey = Connections[Key]
                     if FindKey then
+                        --print("Setting value 2")
                         if SupportedTypes[typeof(ObjectAttributeValue)] and type(Key) == "string" then
                             ThisObject:SetAttribute(Key, ObjectAttributeValue)
                         end
@@ -79,7 +81,7 @@ function LiveAttributes.New(DefaultTable, DefaultObject)
 
     local ThisMetatable = setmetatable({}, Metatable)
     for n, x in pairs(DefaultTable) do
-        ThisMetatable[n] = {DefaultObject, n, x}
+        ThisMetatable[n] = {DefaultObject, n, DefaultObject:GetAttribute(n) or x}
     end
     return ThisMetatable
 end
