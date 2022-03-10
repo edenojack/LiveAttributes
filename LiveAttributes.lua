@@ -1,3 +1,21 @@
+local LiveAttributes = {}
+
+local SupportedTypes = {
+    ["number"] = true;
+    ["string"] = true;
+    ["boolean"] = true;
+    ["UDim"] = true;
+    ["UDim2"] = true;
+    ["Vector2"] = true;
+    ["Vector3"] = true;
+    ["BrickColor"] = true;
+    ["Color3"] = true;
+    ["NumberSequence"] = true;
+    ["NumberRange"] = true;
+    ["ColorSequence"] = true;
+    ["Rect"] = true;
+}
+
 function LiveAttributes.New(DefaultTable, DefaultObject)
     for AttributeName, AttributeValue in pairs(DefaultTable) do
         if SupportedTypes[typeof(AttributeValue)] and type(AttributeName) == "string" then
@@ -17,8 +35,9 @@ function LiveAttributes.New(DefaultTable, DefaultObject)
                 local AttributeName = ObjectAttributeValue[2]; --Attribute name
                 local ThisValue     = ObjectAttributeValue[3]; --Intended value
                 if ThisValue then
-                    print("Setting value")
-                    Object:SetAttribute(AttributeName, ThisValue)
+                    if SupportedTypes[typeof(ThisValue)] and type(AttributeName) == "string" then
+                        Object:SetAttribute(AttributeName, ThisValue)
+                    end
                 end
                 if ConnectionTable[Object] == nil then
                     ConnectionTable[Object] = {};
@@ -40,8 +59,9 @@ function LiveAttributes.New(DefaultTable, DefaultObject)
                 for ThisObject, Connections in pairs(ConnectionTable) do
                     local FindKey = Connections[Key]
                     if FindKey then
-                        print("Setting value 2")
-                        ThisObject:SetAttribute(Key, ObjectAttributeValue)
+                        if SupportedTypes[typeof(ObjectAttributeValue)] and type(Key) == "string" then
+                            ThisObject:SetAttribute(Key, ObjectAttributeValue)
+                        end
                     else
                         ThisTable[Key] = {DefaultObject, Key, ObjectAttributeValue}
                     end
@@ -57,7 +77,11 @@ function LiveAttributes.New(DefaultTable, DefaultObject)
         end;
     }
 
-    return setmetatable({}, Metatable)
+    local ThisMetatable = setmetatable({}, Metatable)
+    for n, x in pairs(DefaultTable) do
+        ThisMetatable[n] = {DefaultObject, n, x}
+    end
+    return ThisMetatable
 end
 
 return LiveAttributes
